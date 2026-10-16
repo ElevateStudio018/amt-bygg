@@ -1,0 +1,52 @@
+<!--meta {"title": "Anmäl skada", "description": "Har du råkat ut för en skada? Kontakta AMT Bygg för gratis rådgivning och offert. Tydlig kommunikation, dokumenterade åtgärder och hjälp från besiktning till färdig återställning.", "path": "anmal-skada/", "nav": "", "og": "skada-kontor"} -->
+
+<section class="page-hero">
+  <div class="wrap grid">
+    <div class="page-hero__text">
+      <nav class="crumbs" aria-label="Brödsmulor"><a href="{{url}}">Start</a><span aria-hidden="true">/</span><span>Anmäl skada</span></nav>
+      <h1>Har du råkat ut för en skada?</h1>
+      <p class="lead">Kontakta oss för gratis rådgivning och offert. Fyll i formuläret så återkommer vi så snart som möjligt.</p>
+    </div>
+    <div class="page-hero__aside">{{swatch parquet|blue|var(--navy)}}</div>
+  </div>
+</section>
+
+<section class="section bg-paper">
+  <div class="wrap contact-grid">
+    <div class="contact-grid__info reveal">
+      <div class="prose">
+        <p><strong>En skada skapar redan tillräckligt med osäkerhet. Du ska inte behöva undra om du har valt rätt byggföretag.</strong></p>
+        <p>Chansa inte med din skada – kontakta AMT Bygg redan idag. Hos AMT Bygg får du tydlig kommunikation, dokumenterade åtgärder och hjälp genom hela processen – från besiktning till färdig återställning.</p>
+        <p>Du kan kontakta oss även om vi inte har ramavtal med ditt försäkringsbolag.</p>
+      </div>
+
+      <div class="contact-block mt-l">
+        <h3>Så gör du</h3>
+        <ol class="numlist">
+          <li><h4>Anmäl skadan till ditt försäkringsbolag</h4><p>Berätta att AMT Bygg hanterar återställningen.</p></li>
+          <li><h4>Kontakta oss</h4><p>Via formuläret eller på telefon. Bifoga gärna PDF:en från försäkringsbolaget.</p></li>
+          <li><h4>Vi bokar besiktning</h4><p>Vi kommer ut, dokumenterar skadan och tar fram en åtgärdsplan.</p></li>
+        </ol>
+      </div>
+
+      <div class="contact-block">
+        <h3>Ring oss</h3>
+        <a class="contact-big" href="tel:{{phone_href}}">{{phone}}</a>
+        <p class="muted mt-xs">Telefontid måndag–fredag 09.00–15.00</p>
+      </div>
+      <div class="contact-block">
+        <a class="link-arrow" href="{{asset files/AMT-Bygg.vcf}}" download><span>Spara AMT som kontakt</span>{{arrow}}</a>
+      </div>
+      <div class="contact-block">
+        <h3>Ramavtal</h3>
+        <div style="display:flex;gap:28px;align-items:center;flex-wrap:wrap">
+          <img src="{{asset logos/dina.png}}" alt="Dina Försäkringar" loading="lazy" style="height:44px;width:auto">
+          <img src="{{asset logos/lansforsakringar.png}}" alt="Länsförsäkringar Göteborg och Bohuslän" loading="lazy" style="height:26px;width:auto">
+        </div>
+      </div>
+    </div>
+    <div class="contact-grid__form reveal" style="--d:.1s">
+      {{> damageform}}
+    </div>
+  </div>
+</section>
