@@ -3,141 +3,129 @@
   'use strict';
   var doc = document.documentElement;
   var body = document.body;
-  doc.classList.remove('no-js');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Header: tillstånd vid scroll */
+  /* Header: blir solid vid scroll och göms när man scrollar nedåt */
+  var lastY = 0;
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
-    body.classList.toggle('is-scrolled', y > 24);
+    body.classList.toggle('is-scrolled', y > 40);
+    if (!body.classList.contains('menu-open')) body.classList.toggle('is-hidden', y > 400 && y > lastY + 4);
+    if (y < lastY - 4) body.classList.remove('is-hidden');
+    lastY = y;
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  /* Megameny */
-  var dropItems = document.querySelectorAll('.nav__item--drop');
-  dropItems.forEach(function (item) {
-    var btn = item.querySelector('[aria-expanded]');
-    var closeTimer;
-    function open() { clearTimeout(closeTimer); item.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); }
-    function close() { item.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); }
-    item.addEventListener('mouseenter', open);
-    item.addEventListener('mouseleave', function () { closeTimer = setTimeout(close, 140); });
-    btn.addEventListener('click', function (e) {
-      if (window.matchMedia('(hover: hover)').matches && btn.tagName === 'A') return;
-      e.preventDefault();
-      item.classList.contains('is-open') ? close() : open();
+  /* Helskärmsmeny */
+  var btn = document.querySelector('.menu-btn');
+  var menu = document.getElementById('menu');
+  var label = btn && btn.querySelector('[data-menu-label]');
+  function setMenu(open) {
+    body.classList.toggle('menu-open', open);
+    body.classList.remove('is-hidden');
+    btn.setAttribute('aria-expanded', String(open));
+    label.textContent = open ? 'Stäng' : 'Meny';
+    if (open) { menu.hidden = false; requestAnimationFrame(function () { var a = menu.querySelector('a'); if (a) a.focus(); }); }
+    else { setTimeout(function () { if (!body.classList.contains('menu-open')) menu.hidden = true; }, 400); btn.focus(); }
+  }
+  if (btn && menu) {
+    btn.addEventListener('click', function () { setMenu(!body.classList.contains('menu-open')); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && body.classList.contains('menu-open')) setMenu(false);
+      if (e.key === 'Tab' && body.classList.contains('menu-open')) {
+        var f = [btn].concat([].slice.call(menu.querySelectorAll('a')));
+        var i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      }
     });
-    item.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { close(); btn.focus(); }
-    });
-    item.addEventListener('focusout', function (e) {
-      if (!item.contains(e.relatedTarget)) close();
-    });
-    btn.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); open(); var f = item.querySelector('.mega a'); if (f) f.focus(); }
-    });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) body.classList.remove('menu-open'); });
+  }
+
+  /* Affärsområden: byt bild när respektive text kommer in i bild */
+  var stickImgs = document.querySelectorAll('[data-stick]');
+  if (stickImgs.length && 'IntersectionObserver' in window) {
+    var so = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = en.target.getAttribute('data-stick-panel');
+        stickImgs.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-stick') === i); });
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    document.querySelectorAll('[data-stick-panel]').forEach(function (p) { so.observe(p); });
+  }
+
+  /* Karusell */
+  document.querySelectorAll('[data-rail]').forEach(function (rail) {
+    var scope = rail.closest('section') || document;
+    var prev = scope.querySelector('[data-rail-prev]');
+    var next = scope.querySelector('[data-rail-next]');
+    function step() { var c = rail.firstElementChild; return c ? c.getBoundingClientRect().width + 24 : 300; }
+    function update() {
+      if (!prev) return;
+      prev.disabled = rail.scrollLeft < 8;
+      next.disabled = rail.scrollLeft + rail.clientWidth > rail.scrollWidth - 8;
+    }
+    if (prev) prev.addEventListener('click', function () { rail.scrollBy({ left: -step(), behavior: reduce ? 'auto' : 'smooth' }); });
+    if (next) next.addEventListener('click', function () { rail.scrollBy({ left: step(), behavior: reduce ? 'auto' : 'smooth' }); });
+    rail.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
   });
 
-  /* Mobilmeny */
-  var toggle = document.querySelector('.menu-toggle');
-  var mobile = document.getElementById('mobile-nav');
-  if (toggle && mobile) {
-    toggle.addEventListener('click', function () {
-      var open = !body.classList.contains('menu-open');
-      body.classList.toggle('menu-open', open);
-      toggle.setAttribute('aria-expanded', String(open));
-      toggle.setAttribute('aria-label', open ? 'Stäng meny' : 'Öppna meny');
-      mobile.toggleAttribute('inert', !open);
-      mobile.setAttribute('aria-hidden', String(!open));
-    });
-    mobile.addEventListener('click', function (e) {
-      if (e.target.closest('a')) { body.classList.remove('menu-open'); toggle.setAttribute('aria-expanded', 'false'); mobile.setAttribute('inert', ''); }
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && body.classList.contains('menu-open')) toggle.click();
-    });
-  }
-
-  /* Visa vid scroll */
-  var reveals = document.querySelectorAll('.reveal, .process');
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target); }
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: .08 });
-    reveals.forEach(function (el) { io.observe(el); });
+  /* Mjuk inglidning för sektioner */
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduce) {
+    var ro = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); ro.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -6% 0px' });
+    reveals.forEach(function (el) { ro.observe(el); });
   } else {
-    reveals.forEach(function (el) { el.classList.add('is-visible'); });
-  }
-
-  /* Diskret parallax på helbreddsbilder */
-  var bleeds = document.querySelectorAll('.bleed img');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (bleeds.length && !reduce) {
-    var ticking = false;
-    function para() {
-      bleeds.forEach(function (img) {
-        var r = img.parentElement.getBoundingClientRect();
-        var vh = window.innerHeight;
-        if (r.bottom < 0 || r.top > vh) return;
-        var p = (r.top + r.height / 2 - vh / 2) / vh;
-        img.style.transform = 'translate3d(0,' + (p * -9 - 6).toFixed(2) + '%,0)';
-      });
-      ticking = false;
-    }
-    window.addEventListener('scroll', function () { if (!ticking) { requestAnimationFrame(para); ticking = true; } }, { passive: true });
-    para();
+    reveals.forEach(function (el) { el.classList.add('is-in'); });
   }
 
   /* Formulär
-     Om formuläret har data-endpoint skickas det dit (t.ex. Formspree eller egen backend).
+     Med data-endpoint skickas formuläret dit (t.ex. Formspree).
      Annars öppnas ett förifyllt mejl till mottagaren. */
   document.querySelectorAll('form[data-form]').forEach(function (form) {
     var status = form.querySelector('.form__status');
-    function show(msg) { if (status) { status.textContent = msg; status.classList.add('is-shown'); status.focus && status.focus(); } }
+    function show(msg) { if (status) { status.textContent = msg; status.classList.add('is-shown'); status.focus(); } }
     form.addEventListener('submit', function (e) {
       if (!form.checkValidity()) return;
       e.preventDefault();
       var endpoint = form.getAttribute('data-endpoint');
       var to = form.getAttribute('data-mailto');
-      var subjectPrefix = form.getAttribute('data-subject') || 'Förfrågan via amtgroup.se';
-      var data = new FormData(form);
       if (endpoint) {
-        var btn = form.querySelector('[type="submit"]');
-        if (btn) btn.disabled = true;
-        fetch(endpoint, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } })
+        var sb = form.querySelector('[type="submit"]');
+        if (sb) sb.disabled = true;
+        fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
           .then(function (r) { if (!r.ok) throw new Error(r.status); form.reset(); show(form.getAttribute('data-success')); })
-          .catch(function () { show('Något gick fel. Ring oss gärna på 031-45 40 45 eller mejla ' + to + '.'); })
-          .finally(function () { if (btn) btn.disabled = false; });
+          .catch(function () { show('Meddelandet kunde inte skickas. Ring oss på 031-45 40 45 eller mejla ' + to + '.'); })
+          .finally(function () { if (sb) sb.disabled = false; });
         return;
       }
+      var subject = form.getAttribute('data-subject') || 'Förfrågan via amtgroup.se';
       var lines = [];
-      var subject = subjectPrefix;
       form.querySelectorAll('[name]').forEach(function (el) {
-        if (el.type === 'file' || el.type === 'checkbox' || el.type === 'hidden') return;
-        var label = form.querySelector('label[for="' + el.id + '"]');
-        var name = label ? label.textContent.replace('*', '').trim() : el.name;
-        if (el.name === 'amne' && el.value) subject = subjectPrefix + ' – ' + el.value;
-        if (el.name === 'skadenummer' && el.value) subject = subjectPrefix + ' – skadenr ' + el.value;
-        if (el.value) lines.push(name + ': ' + el.value);
+        if (el.type === 'file' || el.type === 'checkbox' || !el.value) return;
+        var l = form.querySelector('label[for="' + el.id + '"]');
+        lines.push((l ? l.textContent.replace('*', '').trim() : el.name) + ': ' + el.value);
+        if (el.name === 'amne') subject += ' – ' + el.value;
+        if (el.name === 'skadenummer') subject += ' – skadenr ' + el.value;
       });
-      var hasFile = form.querySelector('input[type="file"]') && form.querySelector('input[type="file"]').files.length;
-      if (hasFile) lines.push('', '(Bifoga filen från försäkringsbolaget i det här mejlet innan du skickar.)');
+      var file = form.querySelector('input[type="file"]');
+      if (file && file.files.length) lines.push('', '(Bifoga filen ' + file.files[0].name + ' i det här mejlet innan du skickar.)');
       window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lines.join('\n'));
       show(form.getAttribute('data-mailto-note'));
     });
   });
 
-  /* Filnamn i filväljaren */
   document.querySelectorAll('input[data-file]').forEach(function (inp) {
     var out = inp.parentElement.querySelector('[data-file-name]');
-    inp.addEventListener('change', function () {
-      out.textContent = inp.files.length ? inp.files[0].name : 'Ingen fil vald';
-    });
+    inp.addEventListener('change', function () { out.textContent = inp.files.length ? inp.files[0].name : 'Ingen fil vald'; });
   });
 
-  /* Årtal i sidfot */
-  var y = document.querySelector('[data-year]');
-  if (y) y.textContent = new Date().getFullYear();
+  var yr = document.querySelector('[data-year]');
+  if (yr) yr.textContent = new Date().getFullYear();
 })();

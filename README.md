@@ -9,7 +9,7 @@ python3 src/build.py           # skriver sidorna till repots rot
 python3 -m http.server 8000    # förhandsvisa på http://localhost:8000
 ```
 
-Kräver Python 3 med Pillow (för bildmått). `python3 src/patterns.py` genererar om mönsterbiblioteket.
+Kräver Python 3 med Pillow (för bildmått). `python3 src/patterns.py` genererar om varumärkestexturen (träådring).
 
 ## Struktur
 
@@ -17,8 +17,8 @@ Kräver Python 3 med Pillow (för bildmått). `python3 src/patterns.py` generera
 | --- | --- |
 | `src/pages/*.html` | Sidornas innehåll (redigera här, inte i de byggda filerna) |
 | `src/build.py` | Sidmall, meny, sidfot, klienter, partners, ramavtal och kontaktuppgifter |
-| `src/patterns.py` | Materialmönster i loggans färger: träådring, fiskben, regelverk, tegel, snitt, rutnät |
-| `assets/` | CSS, JS, typsnitt (lokalt hostade), bilder, logotyper, vCard |
+| `src/patterns.py` | Varumärkestextur (träådring) som används i marinblå ytor |
+| `assets/` | CSS, JS, typsnitt (Unbounded och Geist, lokalt hostade), bilder, logotyper, vCard |
 
 Klienter, partners och försäkringsbolag läggs till i listorna `CLIENTS`, `PARTNERS` och `INSURERS` i `src/build.py` (logotyp i `assets/logos/<id>.png`).
 

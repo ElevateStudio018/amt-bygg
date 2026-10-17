@@ -1,34 +1,20 @@
 <!--meta {"title": "Kontakt", "description": "Kontakta AMT Bygg på 031-45 40 45 eller amtbygg@amtgroup.se. Huvudkontor: Marieholmsgatan 54, 415 02 Göteborg. Fakturering: AMT Byggentreprenad AB, org.nr 559212-4555.", "path": "kontakt/", "nav": "kontakt"} -->
 
-<section class="page-hero">
-  <div class="wrap grid">
-    <div class="page-hero__text">
-      <nav class="crumbs" aria-label="Brödsmulor"><a href="{{url}}">Start</a><span aria-hidden="true">/</span><span>Kontakt</span></nav>
-      <h1>Kontakt</h1>
-      <p class="lead">Vid frågor kontakta oss på telefon, mejl eller via formuläret nedan.</p>
-    </div>
-    <div class="page-hero__aside">{{swatch grid|blue|var(--navy)}}</div>
+<section class="pagehead">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Brödsmulor"><a href="{{url}}">Start</a><span aria-hidden="true">/</span><span>Kontakt</span></nav>
+    <h1>Kontakt</h1>
+    <p class="lead">Vid frågor kontakta oss på telefon, mejl eller via formuläret.</p>
   </div>
 </section>
 
-<section class="section bg-paper">
-  <div class="wrap contact-grid">
-    <div class="contact-grid__info reveal">
-      <div class="contact-block">
-        <h3>Telefon</h3>
-        <a class="contact-big" href="tel:{{phone_href}}">{{phone}}</a>
-      </div>
-      <div class="contact-block">
-        <h3>Mejl</h3>
-        <a class="contact-big" href="mailto:{{email}}">{{email}}</a>
-      </div>
-      <div class="contact-block">
-        <h3>Huvudkontor</h3>
-        <address>{{street}}<br>{{zip}} {{city}}<br>{{region}}<br>Sverige</address>
-        <a class="link-arrow mt-s" href="{{maps}}" target="_blank" rel="noopener"><span>Visa på karta</span>{{arrow}}</a>
-      </div>
-      <div class="contact-block">
-        <h3>Faktureringsuppgifter</h3>
+<section class="section section--top0">
+  <div class="wrap contact">
+    <div>
+      <div class="cblock"><h2>Telefon</h2><a class="cbig" href="tel:{{phone_href}}">{{phone}}</a></div>
+      <div class="cblock"><h2>Mejl</h2><a class="cbig" href="mailto:{{email}}">{{email}}</a></div>
+      <div class="cblock"><h2>Huvudkontor</h2><address>{{street}}<br>{{zip}} {{city}}<br>{{region}}<br>Sverige</address><a class="arrow" href="{{maps}}" target="_blank" rel="noopener">Visa på karta</a></div>
+      <div class="cblock"><h2>Faktureringsuppgifter</h2>
         <dl class="dl">
           <dt>Bolagsnamn</dt><dd>{{legal}}</dd>
           <dt>Fakturaadress</dt><dd>{{street}}<br>{{zip}} {{city}}</dd>
@@ -36,36 +22,28 @@
           <dt>Fakturamejl</dt><dd><a href="mailto:{{invoice_email}}">{{invoice_email}}</a></dd>
         </dl>
       </div>
-      <div class="contact-block">
-        <h3>Spara kontakt</h3>
-        <a class="link-arrow" href="{{asset files/AMT-Bygg.vcf}}" download><span>Spara AMT Bygg som kontakt</span>{{arrow}}</a>
-      </div>
+      <div class="cblock"><a class="arrow" href="{{asset files/AMT-Bygg.vcf}}" download>Spara AMT Bygg som kontakt</a></div>
     </div>
-    <div class="contact-grid__form reveal" style="--d:.1s">
+    <div>
       {{> contactform}}
-      <div class="form bg-navy mt-s" style="overflow:hidden">
-        <div class="pattern pat-parquet pat--blue" style="--pat-o:.25"></div>
-        <div style="position:relative">
-          <span class="eyebrow eyebrow--blue">Skada?</span>
-          <h2 class="mt-s" style="font-size:clamp(1.4rem,1.1rem + 1vw,2rem)">Har du råkat ut för en skada?</h2>
-          <p class="mt-s" style="color:rgba(255,255,255,.8);max-width:46ch">Använd vårt formulär för skadeanmälan – där kan du ange försäkringsbolag och skadenummer och bifoga underlag.</p>
-          <div class="btn-row mt-m"><a class="btn btn--gold" href="{{url anmal-skada/}}">Anmäl skada {{arrow}}</a></div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
 
-<section class="section bg-white section--tight">
-  <div class="wrap">
-    <div class="split" style="align-items:center">
-      <div class="split__a reveal">
-        <span class="eyebrow eyebrow--blue">Omdömen</span>
-        <h2 class="mt-s" style="font-size:clamp(1.5rem,1.2rem + 1vw,2.2rem)">Läs våra omdömen på Trustpilot</h2>
-      </div>
-      <div class="split__b reveal" style="--d:.1s">
-        <a href="https://se.trustpilot.com/review/amtgroup.se" target="_blank" rel="noopener" aria-label="AMT Bygg på Trustpilot (öppnas i ny flik)" style="display:inline-block"><img src="{{asset logos/trustpilot.png}}" alt="Trustpilot" width="260" height="64" loading="lazy" style="width:220px"></a>
-      </div>
+<section class="section navy" style="overflow:hidden">
+  <div class="texture"></div>
+  <div class="wrap intro">
+    <h2>Har du råkat ut för en skada?</h2>
+    <div>
+      <p class="lead">Använd formuläret för skadeanmälan. Där kan du ange försäkringsbolag och skadenummer och bifoga underlag.</p>
+      <div class="btns mt-m"><a class="btn btn--white" href="{{url anmal-skada/}}">Anmäl skada</a></div>
     </div>
+  </div>
+</section>
+
+<section class="section section--s">
+  <div class="wrap" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px">
+    <h2 style="font-size:1.5rem">Läs våra omdömen på Trustpilot</h2>
+    <a href="https://se.trustpilot.com/review/amtgroup.se" target="_blank" rel="noopener" aria-label="AMT Bygg på Trustpilot (öppnas i ny flik)" style="background:#fff;border-radius:14px;padding:14px 20px;display:block"><img src="{{asset logos/trustpilot.png}}" alt="Trustpilot" width="220" height="54" loading="lazy" style="width:200px"></a>
   </div>
 </section>
