@@ -191,32 +191,82 @@ def pic(ctx, name, alt='', sizes='100vw', cls='', eager=False):
             f'width="{w}" height="{h}" alt="{escape(alt)}"{c} {load}></picture>')
 
 
-def swatch(pattern, tone='blue', bg='var(--navy)', extra=''):
-    return (f'<div class="swatch" style="--sw-bg:{bg}" aria-hidden="true">'
-            f'<div class="pattern pat-{pattern} pat--{tone}{extra}"></div></div>')
-
-
-def arrow():
-    return '<span class="arr" aria-hidden="true"></span>'
+def arrow_link(href, text, cls='arrow', extra=''):
+    return f'<a class="{cls}" href="{href}"{extra}>{text}</a>'
 
 
 # ---------------------------------------------------------------------------
 # Gemensamma block (partials)
 # ---------------------------------------------------------------------------
-def p_areas(ctx, arg=''):
-    out = ['<div class="areas">']
-    for i, a in enumerate(AREAS):
+AUDIENCES = [
+    {'who': 'För försäkringsbolag och privatpersoner', 'area': 0,
+     'text': 'Återställning efter vattenskada, brand eller inbrott – från besiktning till färdigställande.'},
+    {'who': 'För fastighetsägare och hyresgäster', 'area': 1,
+     'text': 'Hyresgästanpassningar och ombyggnader som skapar attraktiva lokaler.'},
+    {'who': 'För byggföretag och beställare', 'area': 2,
+     'text': 'Del-, under- och totalentreprenader som håller budget och tidsplan.'},
+]
+
+NEWS = [
+    {'tag': 'Utmärkelse', 'when': '2025', 'title': 'AMT Bygg utsedda till Di Gasell 2025',
+     'text': 'Dagens industri lyfter fram AMT Bygg som ett av Sveriges snabbväxande företag med sunda finanser.',
+     'href': 'om-oss/', 'brand': 'gasell-2025', 'brand_bg': 'white'},
+    {'tag': 'Karriär', 'when': 'Vi söker nu', 'title': 'Vi söker servicesnickare i Göteborg',
+     'text': 'Vill du vara en del av ett framgångsrikt team? Erfarenhet av skadeärenden är ett stort plus.',
+     'href': 'karriar/', 'img': 'hero-goteborg', 'alt': 'Hantverkare framför Göteborgs hamn'},
+    {'tag': 'Partnerskap', 'when': '2026', 'title': 'Officiell partner till IFK Göteborg',
+     'text': 'AMT Bygg fortsätter som officiell partner till IFK Göteborg – och stöttar idrotten i regionen.',
+     'href': 'partners/', 'brand': 'ifk-2026', 'brand_bg': 'navy'},
+]
+
+
+def p_paths(ctx, arg=''):
+    out = ['<div class="paths">']
+    for a in AUDIENCES:
+        area = AREAS[a['area']]
         out.append(f'''
-      <article class="area reveal" style="--d:{i * .08:.2f}s">
-        <div class="area__media">
-          {pic(ctx, a['img'], a['alt'], '(max-width: 980px) 100vw, 33vw')}
-          <span class="area__num">{a['num']} / 03</span>
-          <div class="area__strip">{swatch(a['pattern'], 'blue')}</div>
-        </div>
-        <div class="area__body">
+      <a class="path" href="{ctx.url(area['slug'])}">
+        <small>{a['who']}</small>
+        <h3>{area['title']}</h3>
+        <p>{a['text']}</p>
+        <span class="arrow">Läs mer</span>
+      </a>''')
+    out.append('</div>')
+    return ''.join(out)
+
+
+def p_areas(ctx, arg=''):
+    out = ['<div class="cards">']
+    for a in AREAS:
+        out.append(f'''
+      <article class="card">
+        <div class="card__img">{pic(ctx, a['img'], a['alt'], '(max-width: 620px) 100vw, (max-width: 980px) 50vw, 33vw')}</div>
+        <div class="card__body">
           <h3>{a['title']}</h3>
-          <p>{a['text']}</p>
-          <a class="link-arrow area__link" href="{ctx.url(a['slug'])}"><span>Läs mer om {a['title'].lower()}</span>{arrow()}</a>
+          <p>{a['short']}</p>
+          <a class="arrow card__link" href="{ctx.url(a['slug'])}">Läs mer<span class="visually-hidden"> om {a['title'].lower()}</span></a>
+        </div>
+      </article>''')
+    out.append('</div>')
+    return ''.join(out)
+
+
+def p_news(ctx, arg=''):
+    out = ['<div class="cards">']
+    for n in NEWS:
+        if n.get('img'):
+            media = f'<div class="card__img">{pic(ctx, n["img"], n["alt"], "(max-width: 620px) 100vw, 33vw")}</div>'
+        else:
+            cls = 'card__brand card__brand--white' if n['brand_bg'] == 'white' else 'card__brand'
+            media = f'<div class="{cls}"><img src="{ctx.asset("logos/" + n["brand"] + ".png")}" alt="" loading="lazy"></div>'
+        out.append(f'''
+      <article class="card">
+        {media}
+        <div class="card__body">
+          <div class="btns" style="gap:12px;align-items:center"><span class="tag">{n['tag']}</span><span class="card__meta">{n['when']}</span></div>
+          <h3>{n['title']}</h3>
+          <p>{n['text']}</p>
+          <a class="arrow card__link" href="{ctx.url(n['href'])}">Läs mer</a>
         </div>
       </article>''')
     out.append('</div>')
@@ -225,53 +275,42 @@ def p_areas(ctx, arg=''):
 
 def p_logowall(ctx, arg=''):
     ids = arg.split(',') if arg else [c['id'] for c in CLIENTS]
-    cols = 5 if len(ids) >= 9 else min(len(ids), 4)
-    items = []
-    for c in CLIENTS:
-        if c['id'] not in ids:
-            continue
-        items.append(f'<a href="{c["url"]}" target="_blank" rel="noopener" aria-label="{escape(c["name"])} (öppnas i ny flik)">'
-                     f'<img src="{ctx.asset("logos/" + c["id"] + ".png")}" alt="{escape(c["name"])}" loading="lazy">'
-                     f'<span class="lw-name" aria-hidden="true">{escape(c["sector"])}</span></a>')
-    # fyll ut sista raden med en mönsterruta så att rutnätet blir helt
-    rem = (-len(items)) % cols
-    for _ in range(rem):
-        items.append(f'<div aria-hidden="true" style="padding:0;position:relative;overflow:hidden">'
-                     f'<div class="pattern pat-hatch pat--navy" style="--pat-o:.12"></div></div>')
-    return f'<div class="logo-wall reveal" style="--cols:{cols}">' + ''.join(items) + '</div>'
+    n = 5 if len(ids) >= 9 else min(len(ids), 5)
+    items = [f'<a href="{c["url"]}" target="_blank" rel="noopener" title="{escape(c["name"])}">'
+             f'<img src="{ctx.asset("logos/" + c["id"] + ".png")}" alt="{escape(c["name"])}" loading="lazy"></a>'
+             for c in CLIENTS if c['id'] in ids]
+    items += ['<span class="logos__fill" aria-hidden="true"></span>'] * ((-len(items)) % n)
+    return f'<div class="logos" style="--n:{n}">' + ''.join(items) + '</div>'
 
 
 def p_crestwall(ctx, arg=''):
-    items = []
-    for p in PARTNERS:
-        items.append(f'<a href="{p["url"]}" target="_blank" rel="noopener" aria-label="{escape(p["name"])} (öppnas i ny flik)">'
-                     f'<img src="{ctx.asset("logos/" + p["id"] + ".png")}" alt="{escape(p["name"])}" loading="lazy">'
-                     f'<span class="lw-name" aria-hidden="true">{escape(p["tier"])}</span></a>')
-    return '<div class="logo-wall logo-wall--crests reveal" style="--cols:7">' + ''.join(items) + '</div>'
+    items = [f'<a href="{p["url"]}" target="_blank" rel="noopener" title="{escape(p["name"])}">'
+             f'<img src="{ctx.asset("logos/" + p["id"] + ".png")}" alt="{escape(p["name"])}" loading="lazy"></a>'
+             for p in PARTNERS]
+    return '<div class="logos logos--crests" style="--n:7">' + ''.join(items) + '</div>'
 
 
 def p_agreements(ctx, arg=''):
-    out = ['<div class="agreements reveal">']
+    out = ['<div class="agreements">']
     for x in INSURERS:
         out.append(f'<a class="agreement" href="{x["url"]}" target="_blank" rel="noopener">'
                    f'<img src="{ctx.asset("logos/" + x["id"] + ".png")}" alt="{escape(x["name"])}" loading="lazy">'
-                   f'<span>Ramavtal skadereparationer · {escape(x["note"])}</span></a>')
+                   f'<span>Ramavtal skadereparationer · {escape(x["name"])}</span></a>')
     out.append('</div>')
     return ''.join(out)
 
 
 def p_clients(ctx, arg=''):
     out = ['<div class="clients">']
-    for i, c in enumerate(CLIENTS):
+    for c in CLIENTS:
         host = re.sub(r'^https?://(www\.)?', '', c['url']).rstrip('/')
-        sq = ' client__logo--square' if c['id'] in ('hsb',) else ''
         out.append(f'''
-      <a class="client reveal" style="--d:{(i % 3) * .06:.2f}s" href="{c['url']}" target="_blank" rel="noopener">
-        <div class="client__logo{sq}"><img src="{ctx.asset('logos/' + c['id'] + '.png')}" alt="" loading="lazy"></div>
+      <a class="client" href="{c['url']}" target="_blank" rel="noopener">
+        <div class="client__logo"><img src="{ctx.asset('logos/' + c['id'] + '.png')}" alt="" loading="lazy"></div>
         <span class="client__sector">{escape(c['sector'])}</span>
         <h3>{escape(c['name'])}</h3>
         <p>{escape(c['desc'])}</p>
-        <span class="client__url">{host}<span class="visually-hidden"> (öppnas i ny flik)</span></span>
+        <span class="arrow">{host}<span class="visually-hidden"> (öppnas i ny flik)</span></span>
       </a>''')
     out.append('</div>')
     return ''.join(out)
@@ -280,13 +319,12 @@ def p_clients(ctx, arg=''):
 def p_partners(ctx, arg=''):
     featured = arg == 'featured'
     sel = [p for p in PARTNERS if bool(p.get('featured')) == featured]
-    cls = 'partners partners--featured' if featured else 'partners'
-    out = [f'<div class="{cls}">']
-    for i, p in enumerate(sel):
+    out = [f'<div class="partners" style="--n:{3 if featured else 4}">']
+    for p in sel:
         out.append(f'''
-      <a class="partner reveal" style="--d:{i * .06:.2f}s" href="{p['url']}" target="_blank" rel="noopener">
+      <a class="partner" href="{p['url']}" target="_blank" rel="noopener">
         <div class="partner__crest"><img src="{ctx.asset('logos/' + p['id'] + '.png')}" alt="" loading="lazy"></div>
-        <span class="partner__tier">{escape(p['tier'])} · {escape(p['sport'])}</span>
+        <small>{escape(p['tier'])} · {escape(p['sport'])}</small>
         <h3>{escape(p['name'])}</h3>
         <p>{escape(p['desc'])}</p>
       </a>''')
@@ -297,58 +335,48 @@ def p_partners(ctx, arg=''):
 def p_cta(ctx, arg=''):
     if arg == 'skada':
         return f'''
-<section class="cta-band" aria-labelledby="cta-skada">
-  <div class="pattern pat-wood pat--blue pattern--fade-l"></div>
-  <div class="wrap">
-    <div class="cta-band__text reveal">
-      <hr class="rule-gold">
-      <h2 id="cta-skada">Har du råkat ut för en skada?</h2>
-      <p>Chansa inte med din skada. Anmäl den till ditt försäkringsbolag, meddela att AMT Bygg hanterar återställningen – och kontakta oss. Du kan höra av dig även om vi inte har ramavtal med ditt försäkringsbolag.</p>
-    </div>
-    <div class="cta-band__actions reveal" style="--d:.1s">
-      <div class="btn-row">
-        <a class="btn btn--gold" href="{ctx.url('anmal-skada/')}">Anmäl skada {arrow()}</a>
-        <a class="btn btn--ghost" href="tel:{COMPANY['phone_href']}">Ring {COMPANY['phone']}</a>
-      </div>
-      <div class="cta-band__contact">Telefontid måndag–fredag 09.00–15.00<br><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a></div>
-    </div>
+<section class="cta" aria-labelledby="cta-skada">
+  <div class="texture"></div>
+  <div class="cta__text">
+    <h2 id="cta-skada">Har du råkat ut för en skada?</h2>
+    <p>Anmäl skadan till ditt försäkringsbolag, meddela att AMT Bygg hanterar återställningen och kontakta oss. Du kan höra av dig även om vi inte har ramavtal med ditt försäkringsbolag.</p>
+    <div class="btns"><a class="btn btn--white" href="{ctx.url('anmal-skada/')}">Anmäl skada</a><a class="btn btn--outline-white" href="tel:{COMPANY['phone_href']}">Ring {COMPANY['phone']}</a></div>
+    <div class="cta__contact"><span>Telefontid måndag–fredag 09.00–15.00</span><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a></div>
   </div>
+  <div class="cta__img">{pic(ctx, 'skada-kontor', '', '(max-width: 900px) 100vw, 50vw')}</div>
 </section>'''
     return f'''
-<section class="cta-band" aria-labelledby="cta-kontakt">
-  <div class="pattern pat-wood pat--blue pattern--fade-l"></div>
-  <div class="wrap">
-    <div class="cta-band__text reveal">
-      <hr class="rule-gold">
-      <h2 id="cta-kontakt">Låt oss bygga det tillsammans.</h2>
-      <p>Berätta om ert projekt, er lokal eller ert skadeärende. Vi återkommer så snart som möjligt med ett tydligt nästa steg.</p>
-    </div>
-    <div class="cta-band__actions reveal" style="--d:.1s">
-      <div class="btn-row">
-        <a class="btn btn--gold" href="{ctx.url('kontakt/')}">Kontakta oss {arrow()}</a>
-        <a class="btn btn--ghost" href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a>
-      </div>
-      <div class="cta-band__contact">{COMPANY['street']}, {COMPANY['zip']} {COMPANY['city']}<br><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a></div>
-    </div>
+<section class="cta" aria-labelledby="cta-kontakt">
+  <div class="cta__text">
+    <h2 id="cta-kontakt">Låt oss bygga det tillsammans</h2>
+    <p>Berätta om ert projekt, er lokal eller ert skadeärende så återkommer vi med ett tydligt nästa steg.</p>
+    <div class="btns"><a class="btn btn--white" href="{ctx.url('kontakt/')}">Kontakta oss</a><a class="btn btn--outline-white" href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a></div>
+    <div class="cta__contact"><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a><span>{COMPANY['street']}, {COMPANY['city']}</span></div>
   </div>
+  <div class="cta__img">{pic(ctx, 'team-ritning', '', '(max-width: 900px) 100vw, 50vw')}</div>
 </section>'''
 
 
 def p_areanav(ctx, arg=''):
-    """Länkar till övriga affärsområden längst ned på en affärsområdessida."""
     others = [a for a in AREAS if a['slug'] != arg]
-    out = ['<div class="cells" style="--cols:2">']
+    out = ['<div class="cards" style="--n:2">']
     for a in others:
         out.append(f'''
-      <a class="cell reveal" href="{ctx.url(a['slug'])}">
-        {swatch(a['pattern'], 'blue')}
-        <span class="cell__tag">Affärsområde {a['num']} · {a['material']}</span>
-        <h3>{a['title']}</h3>
-        <p>{a['short']}</p>
-        <span class="link-arrow mt-s"><span>Läs mer</span>{arrow()}</span>
-      </a>''')
+      <article class="card">
+        <div class="card__img">{pic(ctx, a['img'], a['alt'], '(max-width: 620px) 100vw, 50vw')}</div>
+        <div class="card__body">
+          <h3>{a['title']}</h3>
+          <p>{a['short']}</p>
+          <a class="arrow card__link" href="{ctx.url(a['slug'])}">Läs mer</a>
+        </div>
+      </article>''')
     out.append('</div>')
     return ''.join(out)
+
+
+def _consent(ctx):
+    return (f'<label class="consent"><input type="checkbox" name="samtycke" required> <span>Jag har tagit del av hur AMT Bygg '
+            f'behandlar mina <a class="inline" href="{ctx.url("integritetspolicy/")}">personuppgifter</a>.</span></label>')
 
 
 def p_contactform(ctx, arg=''):
@@ -356,12 +384,11 @@ def p_contactform(ctx, arg=''):
     return f'''
 <form class="form" id="formular" data-form{ep} data-mailto="{COMPANY['email']}" data-subject="Kontakt via amtgroup.se"
       data-success="Tack! Vi återkommer så fort som möjligt."
-      data-mailto-note="Ditt mejlprogram öppnas med meddelandet ifyllt – tryck skicka där så återkommer vi så fort som möjligt."
+      data-mailto-note="Ditt mejlprogram öppnas med meddelandet ifyllt. Tryck skicka där så återkommer vi så fort som möjligt."
       action="mailto:{COMPANY['email']}" method="post" enctype="text/plain">
   <div class="form__head">
-    <span class="eyebrow eyebrow--blue">Formulär</span>
-    <h2 class="mt-s">Kontakta oss</h2>
-    <p>Vid frågor kontakta oss på telefon, mejl eller via formuläret nedan.</p>
+    <h2>Skicka ett meddelande</h2>
+    <p>Fyll i formuläret så återkommer vi så fort som möjligt, normalt inom en arbetsdag.</p>
   </div>
   <div class="fields">
     <div class="field"><label for="k-fornamn">Förnamn <span class="req">*</span></label><input id="k-fornamn" name="fornamn" autocomplete="given-name" required></div>
@@ -370,21 +397,16 @@ def p_contactform(ctx, arg=''):
     <div class="field"><label for="k-telefon">Telefon</label><input id="k-telefon" name="telefon" type="tel" autocomplete="tel"></div>
     <div class="field field--full"><label for="k-amne">Ämne</label>
       <select id="k-amne" name="amne">
-        <option value="">Välj ämne</option>
-        <option>Skadereparation</option>
-        <option>Lokalanpassning</option>
-        <option>Entreprenad</option>
-        <option>Samarbete och partnerskap</option>
-        <option>Jobb och karriär</option>
-        <option>Övrigt</option>
+        <option value="">Välj ämne</option><option>Skadereparation</option><option>Lokalanpassning</option><option>Entreprenad</option>
+        <option>Samarbete och partnerskap</option><option>Jobb och karriär</option><option>Övrigt</option>
       </select>
     </div>
     <div class="field field--full"><label for="k-meddelande">Meddelande <span class="req">*</span></label><textarea id="k-meddelande" name="meddelande" required></textarea></div>
-    <label class="consent"><input type="checkbox" name="samtycke" required> <span>Jag har tagit del av hur AMT Bygg behandlar mina <a class="inline" href="{ctx.url('integritetspolicy/')}">personuppgifter</a>.</span></label>
+    {_consent(ctx)}
   </div>
   <div class="form__foot">
-    <p>Vi återkommer så fort som möjligt, normalt inom en arbetsdag.</p>
-    <button class="btn" type="submit">Skicka {arrow()}</button>
+    <p>Fält markerade med * är obligatoriska.</p>
+    <button class="btn" type="submit">Skicka</button>
   </div>
   <div class="form__status" role="status" tabindex="-1"></div>
 </form>'''
@@ -395,11 +417,10 @@ def p_damageform(ctx, arg=''):
     return f'''
 <form class="form" id="formular" data-form{ep} data-mailto="{COMPANY['email']}" data-subject="Skadeanmälan via amtgroup.se"
       data-success="Ditt meddelande är skickat. Vi kontaktar dig så snart som möjligt."
-      data-mailto-note="Ditt mejlprogram öppnas med skadeanmälan ifylld. Bifoga gärna PDF:en från försäkringsbolaget och tryck skicka – vi kontaktar dig så snart som möjligt."
+      data-mailto-note="Ditt mejlprogram öppnas med skadeanmälan ifylld. Bifoga gärna PDF:en från försäkringsbolaget och tryck skicka."
       action="mailto:{COMPANY['email']}" method="post" enctype="text/plain">
   <div class="form__head">
-    <span class="eyebrow eyebrow--blue">Skadeanmälan</span>
-    <h2 class="mt-s">Kontakta oss för gratis rådgivning och offert</h2>
+    <h2>Kontakta oss för gratis rådgivning och offert</h2>
     <p>Fyll i formuläret så återkommer vi så snart som möjligt.</p>
   </div>
   <div class="fields">
@@ -412,20 +433,20 @@ def p_damageform(ctx, arg=''):
     <datalist id="forsakringsbolag"><option value="Dina Försäkringar"><option value="Länsförsäkringar Göteborg och Bohuslän"></datalist>
     <div class="field field--full"><label for="s-meddelande">Meddelande <span class="req">*</span></label><textarea id="s-meddelande" name="meddelande" placeholder="Beskriv kort vad som har hänt och var skadan finns." required></textarea></div>
     <div class="field field--full"><label for="s-fil">Bifoga fil (valfritt)</label><div class="file-pick"><input id="s-fil" name="fil" type="file" accept=".pdf,image/*" data-file><span class="file-pick__btn" aria-hidden="true">Välj fil</span><span class="file-pick__name" data-file-name>Ingen fil vald</span></div><small>PDF från försäkringsbolaget.</small></div>
-    <label class="consent"><input type="checkbox" name="samtycke" required> <span>Jag har tagit del av hur AMT Bygg behandlar mina <a class="inline" href="{ctx.url('integritetspolicy/')}">personuppgifter</a>.</span></label>
+    {_consent(ctx)}
   </div>
   <div class="form__foot">
     <p>Du kan kontakta oss även om vi inte har ramavtal med ditt försäkringsbolag.</p>
-    <button class="btn btn--gold" type="submit">Skicka meddelande {arrow()}</button>
+    <button class="btn" type="submit">Skicka meddelande</button>
   </div>
   <div class="form__status" role="status" tabindex="-1"></div>
 </form>'''
 
 
 PARTIALS = {
-    'areas': p_areas, 'logowall': p_logowall, 'crestwall': p_crestwall, 'agreements': p_agreements,
-    'clients': p_clients, 'partners': p_partners, 'cta': p_cta, 'areanav': p_areanav,
-    'contactform': p_contactform, 'damageform': p_damageform,
+    'paths': p_paths, 'areas': p_areas, 'news': p_news, 'logowall': p_logowall, 'crestwall': p_crestwall,
+    'agreements': p_agreements, 'clients': p_clients, 'partners': p_partners, 'cta': p_cta,
+    'areanav': p_areanav, 'contactform': p_contactform, 'damageform': p_damageform,
 }
 
 
@@ -433,147 +454,106 @@ PARTIALS = {
 # Sidmall
 # ---------------------------------------------------------------------------
 def header(ctx, active):
+    def mega(intro_title, intro_text, intro_href, intro_link, links, feature):
+        rows = ''.join(f'<a href="{ctx.url(h)}"><span><strong>{t}</strong><span>{d}</span></span></a>' for h, t, d in links)
+        f_img, f_title, f_text, f_href = feature
+        return f'''
+          <div class="mega">
+            <div class="wrap">
+              <div class="mega__intro"><h2>{intro_title}</h2><p>{intro_text}</p><a class="arrow" href="{ctx.url(intro_href)}">{intro_link}</a></div>
+              <div class="mega__links">{rows}</div>
+              <a class="mega__feature" href="{ctx.url(f_href)}">{pic(ctx, f_img, '', '420px')}<div><strong>{f_title}</strong><span class="arrow">{f_text}</span></div></a>
+            </div>
+          </div>'''
+
+    megas = {
+        'areas': mega('Affärsområden', 'Skadereparationer, lokalanpassningar och entreprenad i Göteborgsregionen.',
+                      'affarsomraden/', 'Alla affärsområden',
+                      [(a['slug'], a['title'], a['short']) for a in AREAS],
+                      ('skada-kontor', 'Har du råkat ut för en skada?', 'Anmäl skada', 'anmal-skada/')),
+        'company': mega('Om oss', 'Ett modernt byggbolag med starka traditioner, grundat i Göteborg 2019.',
+                        'om-oss/', 'Om AMT Bygg',
+                        [(c['href'], c['title'], c['text']) for c in COMPANY_LINKS],
+                        ('hero-goteborg', 'Vi söker servicesnickare', 'Lediga tjänster', 'karriar/')),
+    }
     items = []
     for n in NAV:
-        cur = ' aria-current="page"' if (ctx.path == n['href']) else ''
-        is_active = ' is-active' if active == n['id'] else ''
-        if n.get('mega') == 'areas':
-            cards = ''.join(f'''
-            <a class="mega__card" href="{ctx.url(a['slug'])}">
-              {swatch(a['pattern'], 'blue')}
-              <h3>{a['title']}</h3>
-              <p>{a['short']}</p>
-            </a>''' for a in AREAS)
+        if n['id'] == 'start':
+            continue
+        cur = ' aria-current="page"' if ctx.path == n['href'] else ''
+        act = ' is-active' if active == n['id'] else ''
+        if n.get('mega'):
             items.append(f'''
-        <li class="nav__item nav__item--drop{is_active}">
-          <a class="nav__link" href="{ctx.url(n['href'])}" aria-expanded="false" aria-haspopup="true"{cur}>{n['label']}<span class="nav__caret" aria-hidden="true"></span></a>
-          <div class="mega">
-            <div class="wrap mega__inner">
-              <div class="mega__intro">
-                <span class="eyebrow">Affärsområden</span>
-                <p>Tre affärsområden med ett gemensamt ansvar: att leverera en högkvalitativ produkt till bästa möjliga pris.</p>
-                <a class="link-arrow" href="{ctx.url(n['href'])}"><span>Översikt</span>{arrow()}</a>
-              </div>{cards}
-            </div>
-          </div>
-        </li>''')
-        elif n.get('mega') == 'company':
-            cards = ''.join(f'''
-            <a class="mega__card" href="{ctx.url(c['href'])}">
-              {swatch(c['pattern'], 'blue')}
-              <h3>{c['title']}</h3>
-              <p>{c['text']}</p>
-            </a>''' for c in COMPANY_LINKS)
-            items.append(f'''
-        <li class="nav__item nav__item--drop{is_active}">
-          <a class="nav__link" href="{ctx.url(n['href'])}" aria-expanded="false" aria-haspopup="true"{cur}>{n['label']}<span class="nav__caret" aria-hidden="true"></span></a>
-          <div class="mega">
-            <div class="wrap mega__inner">
-              <div class="mega__intro">
-                <span class="eyebrow">Företaget</span>
-                <p>AMT Bygg – Tillsammans. Starka relationer och ett samarbete byggt på förtroende och respekt.</p>
-                <a class="link-arrow" href="{ctx.url('kontakt/')}"><span>Kontakta oss</span>{arrow()}</a>
-              </div>{cards}
-            </div>
-          </div>
+        <li class="nav__item nav__item--drop{act}">
+          <a class="nav__link" href="{ctx.url(n['href'])}" aria-expanded="false" aria-haspopup="true"{cur}>{n['label']}<span class="nav__caret" aria-hidden="true"></span></a>{megas[n['mega']]}
         </li>''')
         else:
-            items.append(f'<li class="nav__item{is_active}"><a class="nav__link" href="{ctx.url(n["href"])}"{cur}>{n["label"]}</a></li>')
+            items.append(f'<li class="nav__item{act}"><a class="nav__link" href="{ctx.url(n["href"])}"{cur}>{n["label"]}</a></li>')
 
-    mobile_items = []
-    for i, n in enumerate(NAV):
-        mobile_items.append(f'<li><a href="{ctx.url(n["href"])}">{n["label"]}<small>{i + 1:02d}</small></a></li>')
+    mob = []
+    for n in NAV:
+        sub = ''
         if n.get('mega') == 'areas':
-            mobile_items.append('<li class="sub"><ul>' + ''.join(f'<li><a href="{ctx.url(a["slug"])}">{a["title"]}</a></li>' for a in AREAS) + '</ul></li>')
+            sub = '<ul class="sub">' + ''.join(f'<li><a href="{ctx.url(a["slug"])}">{a["title"]}</a></li>' for a in AREAS) + '</ul>'
         if n.get('mega') == 'company':
-            mobile_items.append('<li class="sub"><ul>' + ''.join(f'<li><a href="{ctx.url(c["href"])}">{c["title"]}</a></li>' for c in COMPANY_LINKS[1:]) + '</ul></li>')
-    mobile_items.append(f'<li><a href="{ctx.url("anmal-skada/")}">Anmäl skada<small>{len(NAV) + 1:02d}</small></a></li>')
+            sub = '<ul class="sub">' + ''.join(f'<li><a href="{ctx.url(c["href"])}">{c["title"]}</a></li>' for c in COMPANY_LINKS[1:]) + '</ul>'
+        mob.append(f'<li><a href="{ctx.url(n["href"])}">{n["label"]}</a>{sub}</li>')
 
     return f'''
 <a class="skip-link" href="#main">Hoppa till innehållet</a>
-<div class="utility">
+<div class="topbar">
   <div class="wrap">
-    <ul class="utility__list">
-      <li class="utility__hide-sm">Huvudkontor {COMPANY['city']}</li>
-      <li><a href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a></li>
-      <li class="utility__hide-sm"><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a></li>
-    </ul>
-    <ul class="utility__list utility__hide-sm">
-      <li><a href="{ctx.url('karriar/')}">Karriär</a></li>
-      <li><a class="utility__alert" href="{ctx.url('anmal-skada/')}">Anmäl skada</a></li>
-    </ul>
+    <span class="topbar__first topbar__hide">Huvudkontor {COMPANY['city']}</span>
+    <a href="{ctx.url('karriar/')}">Karriär</a>
+    <a class="topbar__hide" href="{ctx.url('anmal-skada/')}">Anmäl skada</a>
+    <a href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a>
+    <a class="topbar__hide" href="mailto:{COMPANY['email']}">{COMPANY['email']}</a>
   </div>
 </div>
-<header class="site-header">
+<header class="header">
   <div class="wrap">
-    <a class="brand" href="{ctx.url('')}" aria-label="AMT Bygg – till startsidan">
-      <img class="brand__dark" src="{ctx.asset('brand/amt-bygg-logo.svg')}" alt="AMT Bygg" width="170" height="22">
-      <img class="brand__light" src="{ctx.asset('brand/amt-bygg-logo-white.svg')}" alt="AMT Bygg" width="170" height="22">
-    </a>
-    <nav class="nav" aria-label="Huvudmeny">
-      <ul class="nav__list">{''.join(items)}
-      </ul>
-    </nav>
-    <a class="btn btn--gold btn--sm header-cta" href="{ctx.url('anmal-skada/')}">Anmäl skada</a>
+    <a class="brand" href="{ctx.url('')}"><img src="{ctx.asset('brand/amt-bygg-logo.svg')}" alt="AMT Bygg – till startsidan" width="200" height="26"></a>
+    <nav class="nav" aria-label="Huvudmeny"><ul class="nav__list">{''.join(items)}
+    </ul></nav>
+    <a class="btn btn--sm header__cta" href="{ctx.url('anmal-skada/')}">Anmäl skada</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Öppna meny"><span></span><span></span><span></span></button>
   </div>
 </header>
-<div class="mobile-nav" id="mobile-nav" aria-hidden="true" inert>
-  <div class="pattern pat-wood pat--blue"></div>
-  <ul>{''.join(mobile_items)}</ul>
+<nav class="mobile-nav" id="mobile-nav" aria-label="Mobilmeny" hidden>
+  <ul>{''.join(mob)}</ul>
   <div class="mobile-nav__foot">
-    <a href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a><br>
-    <a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a><br>
-    {COMPANY['street']}, {COMPANY['zip']} {COMPANY['city']}
+    <a class="btn" href="{ctx.url('anmal-skada/')}">Anmäl skada</a>
+    <p>{COMPANY['phone']} · {COMPANY['email']}</p>
   </div>
-</div>'''
+</nav>'''
 
 
 def footer(ctx):
     areas = ''.join(f'<li><a href="{ctx.url(a["slug"])}">{a["title"]}</a></li>' for a in AREAS)
     return f'''
-<footer class="site-footer">
-  <div class="pattern pat-wood pat--blue pattern--fade-l" style="right:0"></div>
-  <div class="wrap">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <img src="{ctx.asset('brand/amt-bygg-logo-white.svg')}" alt="AMT Bygg" width="220" height="29" loading="lazy">
-        <div class="tagline">TILLSAMMANS</div>
-        <p>Ett modernt byggbolag med starka traditioner. Skadereparationer, lokalanpassningar och entreprenad i Göteborgsregionen.</p>
-        <div class="footer-badges">
-          <a href="https://www.di.se/amnen/di-gasell/" target="_blank" rel="noopener" aria-label="Di Gasell 2025"><img src="{ctx.asset('logos/gasell-2025.png')}" alt="Di Gasell 2025" loading="lazy"></a>
-          <a href="{ctx.url('om-oss/ledningssystem/')}" aria-label="Certifierade i Povel" style="padding:6px"><img src="{ctx.asset('logos/povel.png')}" alt="Povel – processorienterad verksamhetsledning" style="height:54px" loading="lazy"></a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h2>Affärsområden</h2>
-        <ul class="list">{areas}<li><a href="{ctx.url('anmal-skada/')}">Anmäl skada</a></li></ul>
-      </div>
-      <div class="footer-col">
-        <h2>Företaget</h2>
-        <ul class="list">
-          <li><a href="{ctx.url('om-oss/')}">Om oss</a></li>
-          <li><a href="{ctx.url('om-oss/ledningssystem/')}">Ledningssystem</a></li>
-          <li><a href="{ctx.url('klienter/')}">Klienter</a></li>
-          <li><a href="{ctx.url('partners/')}">Partners</a></li>
-          <li><a href="{ctx.url('karriar/')}">Karriär</a></li>
-        </ul>
-      </div>
-      <div class="footer-col footer-col--wide">
-        <h2>Kontakt</h2>
-        <address>
-          <a href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a><br>
-          <a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a><br><br>
-          <a href="{COMPANY['maps']}" target="_blank" rel="noopener">Huvudkontor<br>{COMPANY['street']}<br>{COMPANY['zip']} {COMPANY['city']}</a>
-        </address>
-      </div>
-      <div class="footer-col">
-        <h2>Fakturering</h2>
-        <address>{COMPANY['legal']}<br>Org.nr {COMPANY['orgnr']}<br><a href="mailto:{COMPANY['invoice_email']}">{COMPANY['invoice_email']}</a></address>
+<footer class="footer">
+  <div class="wrap footer__top">
+    <div class="footer__brand">
+      <img src="{ctx.asset('brand/amt-bygg-logo-white.svg')}" alt="AMT Bygg" width="200" height="26" loading="lazy">
+      <div class="tagline">TILLSAMMANS</div>
+      <p>Ett modernt byggbolag med starka traditioner. Skadereparationer, lokalanpassningar och entreprenad i Göteborgsregionen.</p>
+      <div class="footer__badges">
+        <a href="https://www.di.se/amnen/di-gasell/" target="_blank" rel="noopener"><img src="{ctx.asset('logos/gasell-2025.png')}" alt="Di Gasell 2025" loading="lazy"></a>
+        <a href="{ctx.url('om-oss/ledningssystem/')}"><img src="{ctx.asset('logos/povel.png')}" alt="Certifierade i Povel" loading="lazy"></a>
       </div>
     </div>
+    <div><h2>Affärsområden</h2><ul class="list">{areas}<li><a href="{ctx.url('anmal-skada/')}">Anmäl skada</a></li></ul></div>
+    <div><h2>Företaget</h2><ul class="list">
+      <li><a href="{ctx.url('om-oss/')}">Om oss</a></li><li><a href="{ctx.url('om-oss/ledningssystem/')}">Ledningssystem</a></li>
+      <li><a href="{ctx.url('klienter/')}">Klienter</a></li><li><a href="{ctx.url('partners/')}">Partners</a></li><li><a href="{ctx.url('karriar/')}">Karriär</a></li>
+    </ul></div>
+    <div><h2>Kontakt</h2><address>
+      <a href="tel:{COMPANY['phone_href']}">{COMPANY['phone']}</a><br><a href="mailto:{COMPANY['email']}">{COMPANY['email']}</a><br><br>
+      <a href="{COMPANY['maps']}" target="_blank" rel="noopener">{COMPANY['street']}<br>{COMPANY['zip']} {COMPANY['city']}</a>
+    </address></div>
+    <div><h2>Fakturering</h2><address>{COMPANY['legal']}<br>Org.nr {COMPANY['orgnr']}<br><a href="mailto:{COMPANY['invoice_email']}">{COMPANY['invoice_email']}</a></address></div>
   </div>
-  <div class="footer-bottom">
+  <div class="footer__bottom">
     <div class="wrap">
       <span>© <span data-year>{date.today().year}</span> {COMPANY['legal']}</span>
       <ul class="list">
@@ -615,7 +595,7 @@ def layout(meta, body_html):
     title = meta['title']
     full_title = title if meta.get('full_title') else f'{title} | AMT Bygg'
     canonical = SITE_URL + '/' + meta['path']
-    body_cls = ' class="has-hero"' if meta.get('hero') else ''
+    body_cls = ''
     og_img = SITE_URL + '/assets/img/' + meta.get('og', 'hero-goteborg') + '-1280.jpg'
     robots = '<meta name="robots" content="noindex">' if meta.get('noindex') else ''
     ld = f'<script type="application/ld+json">{jsonld(meta)}</script>' if meta['path'] == '' else ''
@@ -636,14 +616,12 @@ def layout(meta, body_html):
 <meta property="og:url" content="{canonical}">
 <meta property="og:image" content="{og_img}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#12161f">
+<meta name="theme-color" content="#1b2b55">
 <link rel="icon" href="{ctx.asset('brand/favicon.svg')}" type="image/svg+xml">
 <link rel="icon" href="{ctx.asset('brand/favicon-32.png')}" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="{ctx.asset('brand/apple-touch-icon.png')}">
-<link rel="preload" href="{ctx.asset('fonts/Sora-normal-300_700.woff2')}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{ctx.asset('fonts/HankenGrotesk-normal-300_700.woff2')}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{ctx.asset('fonts/Archivo-normal.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{ctx.asset('css/fonts.css')}">
-<link rel="stylesheet" href="{ctx.asset('css/patterns.css')}">
 <link rel="stylesheet" href="{ctx.asset('css/main.css')}">
 {ld}
 </head>
@@ -676,8 +654,6 @@ def render_tokens(ctx, html):
     html = re.sub(r'\{\{pic\s+([^}]+)\}\}', r_pic, html)
     html = re.sub(r'\{\{url\s*([^}]*)\}\}', lambda m: ctx.url(m.group(1).strip()), html)
     html = re.sub(r'\{\{asset\s+([^}]+)\}\}', lambda m: ctx.asset(m.group(1).strip()), html)
-    html = re.sub(r'\{\{swatch\s+([^}]+)\}\}', lambda m: swatch(*[x.strip() for x in m.group(1).split('|')]), html)
-    html = html.replace('{{arrow}}', arrow())
     for k, v in COMPANY.items():
         html = html.replace('{{' + k + '}}', v)
     if '{{' in html:

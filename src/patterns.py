@@ -1,6 +1,6 @@
-"""Genererar AMT Byggs mönsterbibliotek (materialmönster i loggans färger).
+"""Genererar AMT Byggs varumärkestextur (träådring i loggans blå).
 
-Kör: python3 src/patterns.py  -> assets/patterns/*.svg + assets/css/patterns.css
+Kör: python3 src/patterns.py  -> assets/patterns/wood-blue.svg
 """
 import math, random, base64, os
 
@@ -93,19 +93,8 @@ def uri(svg):
 def main():
     pdir = os.path.join(ROOT, 'assets', 'patterns')
     os.makedirs(pdir, exist_ok=True)
+    # Varumärkestexturen (träådring) används i de marinblå ytorna.
     open(os.path.join(pdir, 'wood-blue.svg'), 'w').write(wood())
-    open(os.path.join(pdir, 'wood-navy.svg'), 'w').write(wood(stroke=NAVY, seed=11))
-    open(os.path.join(pdir, 'wood-gold.svg'), 'w').write(wood(stroke=GOLD, seed=3))
-    tones = {'blue': BLUE, 'navy': NAVY, 'gold': GOLD, 'white': '#ffffff'}
-    gens = {'parquet': herringbone, 'studs': studs, 'brick': brick, 'hatch': hatch, 'grid': grid}
-    css = ['/* Genererad av src/patterns.py – redigera inte för hand */']
-    for name, fn in gens.items():
-        for tname, col in tones.items():
-            css.append(f'.pat-{name}.pat--{tname}{{--pat:{uri(fn(col))}}}')
-    css.append('.pat-wood.pat--blue{--pat:url("../patterns/wood-blue.svg")}')
-    css.append('.pat-wood.pat--navy{--pat:url("../patterns/wood-navy.svg")}')
-    css.append('.pat-wood.pat--gold{--pat:url("../patterns/wood-gold.svg")}')
-    open(os.path.join(ROOT, 'assets', 'css', 'patterns.css'), 'w').write('\n'.join(css) + '\n')
 
 
 if __name__ == '__main__':
