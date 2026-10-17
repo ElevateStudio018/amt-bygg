@@ -3,42 +3,86 @@
   'use strict';
   var doc = document.documentElement;
   var body = document.body;
-  doc.classList.remove('no-js');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Megameny: öppnas vid hovring och med tangentbord */
-  document.querySelectorAll('.nav__item--drop').forEach(function (item) {
-    var link = item.querySelector('.nav__link');
-    var timer;
-    function open() { clearTimeout(timer); item.classList.add('is-open'); link.setAttribute('aria-expanded', 'true'); }
-    function close() { item.classList.remove('is-open'); link.setAttribute('aria-expanded', 'false'); }
-    item.addEventListener('mouseenter', open);
-    item.addEventListener('mouseleave', function () { timer = setTimeout(close, 120); });
-    item.addEventListener('focusout', function (e) { if (!item.contains(e.relatedTarget)) close(); });
-    item.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); link.focus(); } });
-    link.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); open(); var a = item.querySelector('.mega a'); if (a) a.focus(); }
+  /* Header: blir solid vid scroll och göms när man scrollar nedåt */
+  var lastY = 0;
+  function onScroll() {
+    var y = window.scrollY || window.pageYOffset;
+    body.classList.toggle('is-scrolled', y > 40);
+    if (!body.classList.contains('menu-open')) body.classList.toggle('is-hidden', y > 400 && y > lastY + 4);
+    if (y < lastY - 4) body.classList.remove('is-hidden');
+    lastY = y;
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* Helskärmsmeny */
+  var btn = document.querySelector('.menu-btn');
+  var menu = document.getElementById('menu');
+  var label = btn && btn.querySelector('[data-menu-label]');
+  function setMenu(open) {
+    body.classList.toggle('menu-open', open);
+    body.classList.remove('is-hidden');
+    btn.setAttribute('aria-expanded', String(open));
+    label.textContent = open ? 'Stäng' : 'Meny';
+    if (open) { menu.hidden = false; requestAnimationFrame(function () { var a = menu.querySelector('a'); if (a) a.focus(); }); }
+    else { setTimeout(function () { if (!body.classList.contains('menu-open')) menu.hidden = true; }, 400); btn.focus(); }
+  }
+  if (btn && menu) {
+    btn.addEventListener('click', function () { setMenu(!body.classList.contains('menu-open')); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && body.classList.contains('menu-open')) setMenu(false);
+      if (e.key === 'Tab' && body.classList.contains('menu-open')) {
+        var f = [btn].concat([].slice.call(menu.querySelectorAll('a')));
+        var i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      }
     });
-    link.addEventListener('click', function (e) {
-      if (!window.matchMedia('(hover: hover)').matches && !item.classList.contains('is-open')) { e.preventDefault(); open(); }
-    });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) body.classList.remove('menu-open'); });
+  }
+
+  /* Affärsområden: byt bild när respektive text kommer in i bild */
+  var stickImgs = document.querySelectorAll('[data-stick]');
+  if (stickImgs.length && 'IntersectionObserver' in window) {
+    var so = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = en.target.getAttribute('data-stick-panel');
+        stickImgs.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-stick') === i); });
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    document.querySelectorAll('[data-stick-panel]').forEach(function (p) { so.observe(p); });
+  }
+
+  /* Karusell */
+  document.querySelectorAll('[data-rail]').forEach(function (rail) {
+    var scope = rail.closest('section') || document;
+    var prev = scope.querySelector('[data-rail-prev]');
+    var next = scope.querySelector('[data-rail-next]');
+    function step() { var c = rail.firstElementChild; return c ? c.getBoundingClientRect().width + 24 : 300; }
+    function update() {
+      if (!prev) return;
+      prev.disabled = rail.scrollLeft < 8;
+      next.disabled = rail.scrollLeft + rail.clientWidth > rail.scrollWidth - 8;
+    }
+    if (prev) prev.addEventListener('click', function () { rail.scrollBy({ left: -step(), behavior: reduce ? 'auto' : 'smooth' }); });
+    if (next) next.addEventListener('click', function () { rail.scrollBy({ left: step(), behavior: reduce ? 'auto' : 'smooth' }); });
+    rail.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
   });
 
-  /* Mobilmeny */
-  var toggle = document.querySelector('.menu-toggle');
-  var mobile = document.getElementById('mobile-nav');
-  var header = document.querySelector('.header');
-  function setOpen(open) {
-    if (open) doc.style.setProperty('--mn-top', Math.round(header.getBoundingClientRect().bottom) + 'px');
-    body.classList.toggle('menu-open', open);
-    mobile.hidden = !open;
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Stäng meny' : 'Öppna meny');
-  }
-  if (toggle && mobile) {
-    toggle.addEventListener('click', function () { setOpen(!body.classList.contains('menu-open')); });
-    mobile.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && body.classList.contains('menu-open')) setOpen(false); });
-    window.addEventListener('resize', function () { if (window.innerWidth > 1180 && body.classList.contains('menu-open')) setOpen(false); });
+  /* Mjuk inglidning för sektioner */
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduce) {
+    var ro = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); ro.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -6% 0px' });
+    reveals.forEach(function (el) { ro.observe(el); });
+  } else {
+    reveals.forEach(function (el) { el.classList.add('is-in'); });
   }
 
   /* Formulär
@@ -53,20 +97,20 @@
       var endpoint = form.getAttribute('data-endpoint');
       var to = form.getAttribute('data-mailto');
       if (endpoint) {
-        var btn = form.querySelector('[type="submit"]');
-        if (btn) btn.disabled = true;
+        var sb = form.querySelector('[type="submit"]');
+        if (sb) sb.disabled = true;
         fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
           .then(function (r) { if (!r.ok) throw new Error(r.status); form.reset(); show(form.getAttribute('data-success')); })
           .catch(function () { show('Meddelandet kunde inte skickas. Ring oss på 031-45 40 45 eller mejla ' + to + '.'); })
-          .finally(function () { if (btn) btn.disabled = false; });
+          .finally(function () { if (sb) sb.disabled = false; });
         return;
       }
       var subject = form.getAttribute('data-subject') || 'Förfrågan via amtgroup.se';
       var lines = [];
       form.querySelectorAll('[name]').forEach(function (el) {
         if (el.type === 'file' || el.type === 'checkbox' || !el.value) return;
-        var label = form.querySelector('label[for="' + el.id + '"]');
-        lines.push((label ? label.textContent.replace('*', '').trim() : el.name) + ': ' + el.value);
+        var l = form.querySelector('label[for="' + el.id + '"]');
+        lines.push((l ? l.textContent.replace('*', '').trim() : el.name) + ': ' + el.value);
         if (el.name === 'amne') subject += ' – ' + el.value;
         if (el.name === 'skadenummer') subject += ' – skadenr ' + el.value;
       });
@@ -77,12 +121,11 @@
     });
   });
 
-  /* Filnamn i filväljaren */
   document.querySelectorAll('input[data-file]').forEach(function (inp) {
     var out = inp.parentElement.querySelector('[data-file-name]');
     inp.addEventListener('change', function () { out.textContent = inp.files.length ? inp.files[0].name : 'Ingen fil vald'; });
   });
 
-  var y = document.querySelector('[data-year]');
-  if (y) y.textContent = new Date().getFullYear();
+  var yr = document.querySelector('[data-year]');
+  if (yr) yr.textContent = new Date().getFullYear();
 })();

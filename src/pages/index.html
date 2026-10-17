@@ -2,107 +2,88 @@
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero__media">{{pic hero-goteborg|Byggarbetare blickar ut över Göteborgs hamn med varvskranar och stadssiluett|100vw||eager}}</div>
-  <div class="hero__panel-wrap">
-    <div class="wrap">
-      <div class="hero__panel reveal">
-        <div class="texture"></div>
-        <h1 id="hero-title">Ett modernt byggbolag med starka traditioner</h1>
-        <p>Skadereparationer, lokalanpassningar och entreprenad för försäkringsbolag, fastighetsägare och byggföretag i Göteborgsregionen.</p>
-        <div class="btns">
-          <a class="btn btn--white" href="{{url affarsomraden/}}">Våra affärsområden</a>
-          <a class="btn btn--outline-white" href="{{url anmal-skada/}}">Anmäl skada</a>
-        </div>
+  <div class="wrap hero__content">
+    <h1 id="hero-title">Ett modernt byggbolag med starka traditioner</h1>
+    <div class="hero__foot">
+      <p>Skadereparationer, lokalanpassningar och entreprenad för försäkringsbolag, fastighetsägare och byggföretag i Göteborgsregionen.</p>
+      <div class="btns">
+        <a class="btn btn--white" href="{{url affarsomraden/}}">Våra affärsområden</a>
+        <a class="btn btn--outline" href="{{url kontakt/}}">Kontakta oss</a>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" aria-labelledby="paths-title">
+<section class="section" aria-labelledby="om-title">
   <div class="wrap">
-    <div class="head"><div><h2 id="paths-title">Hur kan vi hjälpa dig?</h2></div></div>
-    {{> paths}}
-  </div>
-</section>
-
-<section class="section section--top0" aria-labelledby="om-title">
-  <div class="media-split alt">
-    <div class="media-split__img">{{pic team-ritning|Medarbetare från AMT Bygg går igenom ritningar på arbetsplatsen|(max-width: 900px) 100vw, 50vw}}</div>
-    <div class="media-split__text">
-      <span class="kicker">Om AMT Bygg</span>
-      <h2 id="om-title">Tillsammans skapar vi en högkvalitativ produkt till bästa möjliga pris</h2>
-      <p class="lead">AMT Bygg är ett modernt byggbolag med starka traditioner. Vårt arbete präglas av stor effektivitet och full transparens i alla led.</p>
-      <p class="mt-s">Vi tror på starka relationer och ett samarbete byggt på förtroende och respekt. AMT Bygg – Tillsammans.</p>
-      <a class="arrow" href="{{url om-oss/}}">Mer om AMT Bygg</a>
+    <h2 id="om-title" class="visually-hidden">Om AMT Bygg</h2>
+    <p class="statement reveal">AMT Bygg är ett modernt byggbolag med starka traditioner. Tillsammans med er skapar vi en <em>högkvalitativ produkt</em> till bästa möjliga pris.</p>
+    <div class="btns mt-m reveal"><a class="arrow" href="{{url om-oss/}}">Mer om AMT Bygg</a></div>
+    <div class="facts reveal">
+      <div class="fact"><span class="fact__v">2019</span><span class="fact__k">Grundat i Göteborg, med huvudkontor på Marieholmsgatan</span></div>
+      <div class="fact"><span class="fact__v">3</span><span class="fact__k">Affärsområden: skadereparationer, lokalanpassningar och entreprenad</span></div>
+      <div class="fact"><span class="fact__v">Gasell</span><span class="fact__k">Utsedda till Di Gasell 2025 av Dagens industri</span></div>
+      <div class="fact"><span class="fact__v">Povel</span><span class="fact__k">Certifierat ledningssystem för kvalitet, miljö och arbetsmiljö</span></div>
     </div>
   </div>
 </section>
 
-<section class="section section--top0" aria-labelledby="fakta-title">
+<section class="section section--top0" aria-labelledby="areas-title">
   <div class="wrap">
-    <h2 id="fakta-title" class="visually-hidden">AMT Bygg i korthet</h2>
-    <div class="figures">
-      <div class="figure"><span class="figure__v">2019</span><span class="figure__k">Grundat i Göteborg, med huvudkontor på Marieholmsgatan</span></div>
-      <div class="figure"><span class="figure__v">3</span><span class="figure__k">Affärsområden: skadereparationer, lokalanpassningar och entreprenad</span></div>
-      <div class="figure"><span class="figure__v">Gasell</span><span class="figure__k">Utsedda till Di Gasell 2025 av Dagens industri</span></div>
-      <div class="figure"><span class="figure__v">Povel</span><span class="figure__k">Certifierat ledningssystem för kvalitet, miljö och arbetsmiljö</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="section alt" aria-labelledby="areas-title">
-  <div class="wrap">
-    <div class="head">
-      <div><span class="kicker">Affärsområden</span><h2 id="areas-title">Det här gör vi</h2></div>
+    <div class="head reveal">
+      <div><span class="kicker">Affärsområden</span><h2 id="areas-title">Tre sätt att bygga med oss</h2></div>
       <a class="arrow" href="{{url affarsomraden/}}">Alla affärsområden</a>
     </div>
-    {{> areas}}
+    {{> stick}}
   </div>
 </section>
 
-<section class="section navy" style="overflow:hidden" aria-labelledby="skade-title">
-  <div class="texture"></div>
+<section class="section alt" aria-labelledby="skade-title">
   <div class="wrap">
-    <div class="intro">
+    <div class="intro reveal">
       <div>
         <span class="kicker">Ramavtal skadereparationer</span>
         <h2 id="skade-title">Från besiktning till färdigställande</h2>
       </div>
       <div>
-        <p class="lead">Vi har mångårig erfarenhet av försäkringsuppdrag. Oavsett om det är en vattenläcka, en brand eller ett inbrott så ger vi oss inte förrän kunden är helt nöjd.</p>
-        <p class="mt-s muted">Vi hanterar våra skadeärenden i Meps så att du som skadehandläggare kan känna dig trygg i att det blir en effektiv och proffsig process. Vi har ramavtal med Dina Försäkringar och Länsförsäkringar Göteborg och Bohuslän.</p>
+        <p class="lead">Vi har mångårig erfarenhet av försäkringsuppdrag och hanterar våra skadeärenden i Meps, så att du som skadehandläggare kan känna dig trygg i att det blir en effektiv och proffsig process.</p>
         <div class="btns mt-m">
-          <a class="btn btn--white" href="{{url anmal-skada/}}">Anmäl skada</a>
-          <a class="btn btn--outline-white" href="{{url affarsomraden/skadereparationer/}}">Så går det till</a>
+          <a class="btn" href="{{url anmal-skada/}}">Anmäl skada</a>
+          <a class="btn btn--outline" href="{{url affarsomraden/skadereparationer/}}">Så går det till</a>
         </div>
       </div>
     </div>
+    <div class="mt-l reveal">{{> agreements}}</div>
   </div>
 </section>
 
-<section class="section" aria-labelledby="klienter-title">
+<section class="section alt section--top0" aria-labelledby="klienter-title">
   <div class="wrap">
-    <div class="head">
+    <div class="head reveal">
       <div><span class="kicker">Klienter</span><h2 id="klienter-title">Vi bygger för regionens ledande aktörer</h2></div>
       <a class="arrow" href="{{url klienter/}}">Alla klienter</a>
     </div>
-    {{> logowall}}
+    <div class="reveal">{{> logowall}}</div>
   </div>
 </section>
 
-<section class="section alt" aria-labelledby="aktuellt-title">
+<section class="section" aria-labelledby="aktuellt-title">
   <div class="wrap">
-    <div class="head"><div><span class="kicker">Aktuellt</span><h2 id="aktuellt-title">Nyheter från AMT Bygg</h2></div></div>
+    <div class="head reveal">
+      <div><span class="kicker">Aktuellt</span><h2 id="aktuellt-title">Nyheter från AMT Bygg</h2></div>
+      {{> railnav}}
+    </div>
     {{> news}}
   </div>
 </section>
 
-<section class="section" aria-labelledby="ls-title">
+<section class="section navy" style="overflow:hidden" aria-labelledby="ls-title">
+  <div class="texture"></div>
   <div class="wrap">
-    <div class="intro">
+    <div class="intro reveal">
       <div>
         <span class="kicker">Kvalitet, miljö och arbetsmiljö</span>
         <h2 id="ls-title">Certifierade i Povel</h2>
-        <img src="{{asset logos/povel.png}}" alt="Povel – processorienterad verksamhetsledning" width="592" height="592" loading="lazy" style="width:150px;margin-top:32px">
       </div>
       <div>
         <p class="lead">Povel är byggbranschens eget verksamhetsledningssystem. Det binder samman våra egna ambitioner med alla de krav som ställs på byggföretag idag, vilket ger våra kunder och medarbetare en trygghet när de jobbar med oss.</p>
@@ -115,11 +96,11 @@
 
 <section class="section alt" aria-labelledby="partners-title">
   <div class="wrap">
-    <div class="head">
-      <div><span class="kicker">Partners</span><h2 id="partners-title">Engagemang i Göteborgsregionen</h2><p>Vi är partner till IFK Göteborg, Frölunda Hockey Club, Örgryte IS och flera lokala föreningar – från elit till bredd.</p></div>
+    <div class="head reveal">
+      <div><span class="kicker">Partners</span><h2 id="partners-title">Engagemang i Göteborgsregionen</h2><p>Partner till IFK Göteborg, Frölunda Hockey Club, Örgryte IS och flera lokala föreningar – från elit till bredd.</p></div>
       <a class="arrow" href="{{url partners/}}">Våra partners</a>
     </div>
-    {{> crestwall}}
+    <div class="reveal">{{> crestwall}}</div>
   </div>
 </section>
 

@@ -18,7 +18,7 @@ Kräver Python 3 med Pillow (för bildmått). `python3 src/patterns.py` generera
 | `src/pages/*.html` | Sidornas innehåll (redigera här, inte i de byggda filerna) |
 | `src/build.py` | Sidmall, meny, sidfot, klienter, partners, ramavtal och kontaktuppgifter |
 | `src/patterns.py` | Varumärkestextur (träådring) som används i marinblå ytor |
-| `assets/` | CSS, JS, typsnitt (Archivo, lokalt hostat), bilder, logotyper, vCard |
+| `assets/` | CSS, JS, typsnitt (Unbounded och Geist, lokalt hostade), bilder, logotyper, vCard |
 
 Klienter, partners och försäkringsbolag läggs till i listorna `CLIENTS`, `PARTNERS` och `INSURERS` i `src/build.py` (logotyp i `assets/logos/<id>.png`).
 
